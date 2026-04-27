@@ -1,65 +1,163 @@
+:root {
+  --bg-color: #050505;
+  --panel-bg: rgba(15, 52, 96, 0.4);
+  --accent: #e94560;
+  --neon-blue: #00f2ff;
+  --neon-pink: #ff00ff;
+  --text: #ffffff;
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg,#1a1a2e,#16213e);
-  color:#fff;
-  text-align:center;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: var(--bg-color);
+  background-image: 
+    radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  color: var(--text);
+  text-align: center;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-h1 { margin:20px 0; }
-
-#menu {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:15px;
-  padding:20px;
-}
-
-.card {
-  width:150px;
-  padding:20px;
-  background:#0f3460;
-  border-radius:15px;
-  cursor:pointer;
-  transition:0.3s;
-}
-
-.card:hover {
-  transform:scale(1.1);
-  background:#e94560;
-}
-
-#game {
-  margin-top:20px;
-}
-
-button {
-  padding:10px 20px;
-  border:none;
-  border-radius:10px;
-  background:#e94560;
-  color:#fff;
-  cursor:pointer;
-  margin:5px;
-}
-
-canvas {
-  background:#000;
-  border-radius:10px;
-}
-
-#ad {
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#0f3460;
-  padding:10px;
+h1 {
+  margin: 40px 0 20px;
+  font-size: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+  color: var(--neon-blue);
 }
 
 #coin {
-  position:fixed;
-  top:10px;
-  right:20px;
-  font-weight:bold;
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  font-size: 1.5rem;
+  background: var(--panel-bg);
+  padding: 10px 20px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  z-index: 100;
+}
+
+#menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  width: 180px;
+  padding: 30px 20px;
+  background: var(--panel-bg);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.05);
+  background: rgba(233, 69, 96, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 30px rgba(233, 69, 96, 0.4);
+}
+
+.card .icon {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+}
+
+.card .title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+#game-container {
+  margin: 20px auto;
+  padding: 20px;
+  min-height: 500px;
+  display: none;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#game-canvas-wrapper {
+  position: relative;
+  display: inline-block;
+  background: #000;
+  border-radius: 20px;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  border: 2px solid var(--panel-bg);
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+}
+
+.btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+}
+
+.btn:hover {
+  background: #ff5e78;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(233, 69, 96, 0.5);
+}
+
+#back-btn {
+  margin-bottom: 20px;
+}
+
+#ad {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: var(--panel-bg);
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Specific UI for games */
+.game-ui {
+  margin-bottom: 20px;
+}
+
+.score-display {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
 }

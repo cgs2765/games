@@ -1,20 +1,27 @@
-# Project Blueprint: Mini Games Pro+
+# Project Blueprint: Mini Games Pro+ (Revamped)
 
 ## Purpose and Capabilities
-A simple web-based gaming platform featuring multiple mini-games like Clicker, Snake, and Flappy Bird, designed with a focus on simplicity and modern web standards.
+A modern, extensible web-based gaming platform featuring a variety of mini-games, from classic 2D games to physics-based 3D experiences. It features a global coin system, persistent storage, and a polished, responsive UI.
 
 ## Project Outline
-- **Design:** Modern dark theme with a gradient background (`#1a1a2e` to `#16213e`) and interactive "card" based menu.
-- **Features:**
-  - **Clicker:** A simple clicking game with upgrades.
-  - **Snake:** Classic snake game using Canvas.
-  - **Flappy:** A bird-flying game using Canvas.
-  - **Reaction Game:** Tests the user's reaction time.
-  - **Memory Game:** Simple sequence memorization game.
-  - **Coin System:** Global coin counter updated across games.
-- **Tech Stack:** Vanilla HTML, CSS, and JavaScript.
+- **Design:** Cyberpunk/Neon theme with Glassmorphism UI. Responsive design using modern CSS.
+- **Platform Features:**
+  - **GameManager:** Centralized control for game lifecycle (init, start, destroy).
+  - **Persistence:** Coins are saved in `localStorage`.
+  - **Dynamic Menu:** Games are registered and the menu is built automatically.
+- **Games:**
+  - **Clicker:** Simple upgrade-based game.
+  - **Snake:** Enhanced classic snake with better graphics.
+  - **Flappy:** Physics-based bird flight.
+  *New Games:*
+  - **Ball Roller 3D:** 3D physics game using Three.js.
+  - **Shape Smasher:** Fast-paced action game.
+  - **Speed Tiles:** Rhythm and reaction test.
+  - **Stacker:** Physics-based balancing game using Matter.js.
 
-## Current Plan: Initial Implementation
-1. Split the provided monolithic HTML into `index.html`, `style.css`, and `main.js`.
-2. Ensure correct linking between files.
-3. Commit and push changes to trigger GitHub Pages deployment.
+## Current Plan: Platform Revamp & New Games
+1. **Infrastructure:** Implement `GameManager` and `BaseGame` in `main.js`.
+2. **UI/UX:** Overhaul `style.css` for a modern look.
+3. **Core Games:** Refactor existing games into the new system.
+4. **New Games:** Implement Ball Roller 3D, Shape Smasher, Speed Tiles, and Stacker.
+5. **Deployment:** Push to GitHub to trigger automatic deployment.

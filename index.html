@@ -5,22 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mini Games Pro+</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
 </head>
 <body>
 
   <h1>🎮 Mini Games Pro+</h1>
-  <div id="coin">💰 0</div>
+  <div id="coin">💰 <span id="coin-val">0</span></div>
 
   <div id="menu">
-    <div class="card" onclick="startClicker()">Clicker</div>
-    <div class="card" onclick="startSnake()">Snake</div>
-    <div class="card" onclick="startFlappy()">Flappy</div>
-    <div class="card" onclick="reactionGame()">Reaction</div>
-    <div class="card" onclick="memoryGame()">Memory</div>
+    <!-- Dynamic Menu Items will be injected here -->
   </div>
 
-  <div id="game"></div>
-  <div id="ad">광고 영역 (애드센스)</div>
+  <div id="game-container">
+    <button id="back-btn" class="btn" onclick="gameManager.backToMenu()">◀ Back to Menu</button>
+    <div id="game-content">
+      <!-- Game UI and Canvas will be injected here -->
+    </div>
+  </div>
+
+  <div id="ad">Experience the best mini games platform • Pro+ Version</div>
 
   <script src="main.js"></script>
 </body>
