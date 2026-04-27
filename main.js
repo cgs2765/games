@@ -477,6 +477,332 @@ class StackerGame extends BaseGame {
   }
 }
 
+/* 7. Omok (오목) */
+class OmokGame extends BaseGame {
+  init(container) {
+    this.size = 15;
+    this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
+    this.turn = 1; // 1: Black, 2: White
+    this.gameOver = false;
+
+    container.innerHTML = `
+      <div class="board-game-container">
+        <h2>Omok (오목)</h2>
+        <div class="game-info">Turn: <span id="omok-turn" class="turn-black">Black</span></div>
+        <canvas id="omok-board" class="board" width="450" height="450"></canvas>
+      </div>
+    `;
+
+    this.canvas = document.getElementById('omok-board');
+    this.ctx = this.canvas.getContext('2d');
+    this.cellSize = 450 / this.size;
+
+    this.draw();
+    this.addListener(this.canvas, 'mousedown', (e) => this.handleClick(e));
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, 450, 450);
+
+    // Grid
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < this.size; i++) {
+      ctx.beginPath();
+      ctx.moveTo(this.cellSize/2, i * this.cellSize + this.cellSize/2);
+      ctx.lineTo(450 - this.cellSize/2, i * this.cellSize + this.cellSize/2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(i * this.cellSize + this.cellSize/2, this.cellSize/2);
+      ctx.lineTo(i * this.cellSize + this.cellSize/2, 450 - this.cellSize/2);
+      ctx.stroke();
+    }
+
+    // Stones
+    for (let y = 0; y < this.size; y++) {
+      for (let x = 0; x < this.size; x++) {
+        if (this.board[y][x] !== 0) {
+          ctx.beginPath();
+          ctx.arc(x * this.cellSize + this.cellSize/2, y * this.cellSize + this.cellSize/2, this.cellSize/2 - 2, 0, Math.PI * 2);
+          ctx.fillStyle = this.board[y][x] === 1 ? '#000' : '#fff';
+          ctx.fill();
+          ctx.strokeStyle = '#333';
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  handleClick(e) {
+    if (this.gameOver) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / this.cellSize);
+    const y = Math.floor((e.clientY - rect.top) / this.cellSize);
+
+    if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.board[y][x] === 0) {
+      this.board[y][x] = this.turn;
+      if (this.checkWin(x, y)) {
+        this.draw();
+        alert(`${this.turn === 1 ? 'Black' : 'White'} wins!`);
+        gameManager.addCoin(50);
+        this.gameOver = true;
+      } else {
+        this.turn = this.turn === 1 ? 2 : 1;
+        const turnEl = document.getElementById('omok-turn');
+        turnEl.innerText = this.turn === 1 ? 'Black' : 'White';
+        turnEl.className = this.turn === 1 ? 'turn-black' : 'turn-white';
+        this.draw();
+      }
+    }
+  }
+
+  checkWin(x, y) {
+    const color = this.board[y][x];
+    const dirs = [[1,0], [0,1], [1,1], [1,-1]];
+    for (let [dx, dy] of dirs) {
+      let count = 1;
+      for (let i = 1; i < 5; i++) {
+        let nx = x + dx * i, ny = y + dy * i;
+        if (nx < 0 || nx >= this.size || ny < 0 || ny >= this.size || this.board[ny][nx] !== color) break;
+        count++;
+      }
+      for (let i = 1; i < 5; i++) {
+        let nx = x - dx * i, ny = y - dy * i;
+        if (nx < 0 || nx >= this.size || ny < 0 || ny >= this.size || this.board[ny][nx] !== color) break;
+        count++;
+      }
+      if (count >= 5) return true;
+    }
+    return false;
+  }
+}
+
+/* 8. Baduk (바둑) - Simplified */
+class BadukGame extends BaseGame {
+  init(container) {
+    this.size = 19;
+    this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
+    this.turn = 1; // 1: Black, 2: White
+    
+    container.innerHTML = `
+      <div class="board-game-container">
+        <h2>Baduk (바둑)</h2>
+        <div class="game-info">Turn: <span id="baduk-turn" class="turn-black">Black</span></div>
+        <canvas id="baduk-board" class="board" width="500" height="500"></canvas>
+        <button class="btn" onclick="gameManager.currentGame.pass()">Pass</button>
+      </div>
+    `;
+
+    this.canvas = document.getElementById('baduk-board');
+    this.ctx = this.canvas.getContext('2d');
+    this.cellSize = 500 / this.size;
+
+    this.draw();
+    this.addListener(this.canvas, 'mousedown', (e) => this.handleClick(e));
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, 500, 500);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < this.size; i++) {
+      ctx.beginPath();
+      ctx.moveTo(this.cellSize/2, i * this.cellSize + this.cellSize/2);
+      ctx.lineTo(500 - this.cellSize/2, i * this.cellSize + this.cellSize/2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(i * this.cellSize + this.cellSize/2, this.cellSize/2);
+      ctx.lineTo(i * this.cellSize + this.cellSize/2, 500 - this.cellSize/2);
+      ctx.stroke();
+    }
+
+    // Star points
+    const stars = [3, 9, 15];
+    ctx.fillStyle = '#333';
+    stars.forEach(sy => stars.forEach(sx => {
+      ctx.beginPath();
+      ctx.arc(sx * this.cellSize + this.cellSize/2, sy * this.cellSize + this.cellSize/2, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }));
+
+    for (let y = 0; y < this.size; y++) {
+      for (let x = 0; x < this.size; x++) {
+        if (this.board[y][x] !== 0) {
+          ctx.beginPath();
+          ctx.arc(x * this.cellSize + this.cellSize/2, y * this.cellSize + this.cellSize/2, this.cellSize/2 - 1, 0, Math.PI * 2);
+          ctx.fillStyle = this.board[y][x] === 1 ? '#000' : '#fff';
+          ctx.fill();
+          ctx.strokeStyle = '#333';
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  handleClick(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / this.cellSize);
+    const y = Math.floor((e.clientY - rect.top) / this.cellSize);
+
+    if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.board[y][x] === 0) {
+      this.board[y][x] = this.turn;
+      this.capture(x, y);
+      this.turn = this.turn === 1 ? 2 : 1;
+      this.updateUI();
+      this.draw();
+      gameManager.addCoin(2);
+    }
+  }
+
+  pass() {
+    this.turn = this.turn === 1 ? 2 : 1;
+    this.updateUI();
+  }
+
+  updateUI() {
+    const turnEl = document.getElementById('baduk-turn');
+    turnEl.innerText = this.turn === 1 ? 'Black' : 'White';
+    turnEl.className = this.turn === 1 ? 'turn-black' : 'turn-white';
+  }
+
+  capture(x, y) {
+    const opponent = this.turn === 1 ? 2 : 1;
+    const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+    dirs.forEach(([dx, dy]) => {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[ny][nx] === opponent) {
+        const group = [];
+        if (!this.hasLiberty(nx, ny, opponent, group, new Set())) {
+          group.forEach(([gx, gy]) => this.board[gy][gx] = 0);
+        }
+      }
+    });
+  }
+
+  hasLiberty(x, y, color, group, visited) {
+    const key = `${x},${y}`;
+    if (visited.has(key)) return false;
+    visited.add(key);
+    group.push([x, y]);
+
+    const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+    for (let [dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size) {
+        if (this.board[ny][nx] === 0) return true;
+        if (this.board[ny][nx] === color) {
+          if (this.hasLiberty(nx, ny, color, group, visited)) return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+/* 9. Janggi (장기) - Simplified */
+class JanggiGame extends BaseGame {
+  init(container) {
+    this.board = [
+      ['R','N','B','S',' ','S','B','N','R'],
+      [' ',' ',' ',' ','P',' ',' ',' ',' '],
+      [' ','C',' ',' ',' ',' ',' ','C',' '],
+      ['P',' ','P',' ','P',' ','P',' ','P'],
+      [' ',' ',' ',' ',' ',' ',' ',' ',' '],
+      [' ',' ',' ',' ',' ',' ',' ',' ',' '],
+      ['p',' ','p',' ','p',' ','p',' ','p'],
+      [' ','c',' ',' ',' ',' ',' ','c',' '],
+      [' ',' ',' ',' ','p',' ',' ',' ',' '],
+      ['r','n','b','s',' ','s','b','n','r']
+    ];
+    this.turn = 'red'; // red (lowercase), blue (uppercase)
+    this.selected = null;
+
+    container.innerHTML = `
+      <div class="board-game-container">
+        <h2>Janggi (장기)</h2>
+        <div class="game-info">Turn: <span id="janggi-turn" style="color:#e94560">Red</span></div>
+        <canvas id="janggi-board" class="board" width="400" height="450"></canvas>
+      </div>
+    `;
+
+    this.canvas = document.getElementById('janggi-board');
+    this.ctx = this.canvas.getContext('2d');
+    this.draw();
+    this.addListener(this.canvas, 'mousedown', (e) => this.handleClick(e));
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, 400, 450);
+    const w = 400/8, h = 450/9;
+
+    // Lines
+    ctx.strokeStyle = '#333';
+    for(let i=0; i<10; i++){
+      ctx.beginPath(); ctx.moveTo(0, i*h); ctx.lineTo(400, i*h); ctx.stroke();
+    }
+    for(let i=0; i<9; i++){
+      ctx.beginPath(); ctx.moveTo(i*w, 0); ctx.lineTo(i*w, 450); ctx.stroke();
+    }
+
+    // Palaces
+    const drawPalace = (ox, oy) => {
+      ctx.beginPath(); ctx.moveTo(3*w, oy); ctx.lineTo(5*w, oy+2*h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(5*w, oy); ctx.lineTo(3*w, oy+2*h); ctx.stroke();
+    };
+    drawPalace(0, 0); drawPalace(0, 7*h);
+
+    // Pieces
+    ctx.font = '24px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for(let y=0; y<10; y++){
+      for(let x=0; x<9; x++){
+        const p = this.board[y][x];
+        if(p !== ' '){
+          ctx.fillStyle = (p === p.toLowerCase()) ? '#e94560' : '#00f2ff';
+          ctx.beginPath(); ctx.arc(x*w, y*h, 18, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.fillText(this.getPieceName(p), x*w, y*h);
+        }
+      }
+    }
+  }
+
+  getPieceName(p) {
+    const names = { 'r':'車', 'n':'馬', 'b':'象', 's':'士', 'p':'卒', 'c':'包', 'k':'楚' };
+    return names[p.toLowerCase()] || p;
+  }
+
+  handleClick(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const w = 400/8, h = 450/9;
+    const x = Math.round((e.clientX - rect.left) / w);
+    const y = Math.round((e.clientY - rect.top) / h);
+
+    const p = this.board[y] ? this.board[y][x] : null;
+    if(!this.selected) {
+      if(p && ((this.turn === 'red' && p === p.toLowerCase()) || (this.turn === 'blue' && p === p.toUpperCase()))) {
+        this.selected = {x, y};
+      }
+    } else {
+      this.board[y][x] = this.board[this.selected.y][this.selected.x];
+      this.board[this.selected.y][this.selected.x] = ' ';
+      this.selected = null;
+      this.turn = this.turn === 'red' ? 'blue' : 'red';
+      document.getElementById('janggi-turn').innerText = this.turn.toUpperCase();
+      document.getElementById('janggi-turn').style.color = this.turn === 'red' ? '#e94560' : '#00f2ff';
+      this.draw();
+      gameManager.addCoin(5);
+    }
+  }
+}
+
 /**
  * Initialization
  */
@@ -489,3 +815,6 @@ gameManager.registerGame('roller', { name: 'Ball Roller 3D', icon: '⚽' }, Ball
 gameManager.registerGame('smash', { name: 'Shape Smasher', icon: '💥' }, ShapeSmasherGame);
 gameManager.registerGame('tiles', { name: 'Speed Tiles', icon: '🎹' }, SpeedTilesGame);
 gameManager.registerGame('stack', { name: 'Stacker', icon: '🧱' }, StackerGame);
+gameManager.registerGame('omok', { name: 'Omok', icon: '⚪' }, OmokGame);
+gameManager.registerGame('baduk', { name: 'Baduk', icon: '⚫' }, BadukGame);
+gameManager.registerGame('janggi', { name: 'Janggi', icon: '🏯' }, JanggiGame);

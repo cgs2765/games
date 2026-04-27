@@ -186,6 +186,42 @@ canvas {
   .ad-top { width: 100%; min-height: 50px; }
 }
 
+/* Board Games UI */
+.board-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.board {
+  background: #dcb35c;
+  background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+  border: 4px solid #8b5a2b;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.game-info {
+  background: var(--panel-bg);
+  padding: 15px 30px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.turn-indicator {
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.turn-black { color: #000; text-shadow: 0 0 5px #fff; }
+.turn-white { color: #fff; text-shadow: 0 0 5px #000; }
+
 /* Specific UI for games */
 .game-ui {
   margin-bottom: 20px;

@@ -18,6 +18,9 @@ A modern, extensible web-based gaming platform featuring a variety of mini-games
   - **Shape Smasher:** Fast-paced action game.
   - **Speed Tiles:** Rhythm and reaction test.
   - **Stacker:** Physics-based balancing game using Matter.js.
+  - **Omok:** Traditional 5-in-a-row strategy game.
+  - **Baduk:** Classic Go game with capture logic.
+  - **Janggi:** Traditional Korean chess with unique pieces.
 
 ## Current Plan: Platform Revamp & New Games
 1. **Infrastructure:** Implement `GameManager` and `BaseGame` in `main.js`.
