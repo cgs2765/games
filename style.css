@@ -202,6 +202,13 @@ canvas {
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   cursor: pointer;
   border-radius: 4px;
+  max-width: 90vw;
+  height: auto;
+}
+
+#janggi-board {
+  width: 600px;
+  height: 675px;
 }
 
 .game-info {

@@ -805,8 +805,8 @@ class JanggiGame extends BaseGame {
     container.innerHTML = `
       <div class="board-game-container">
         <h2>Janggi (장기)</h2>
-        <div class="game-info">Turn: <span id="janggi-turn" style="color:#e94560">Red</span></div>
-        <canvas id="janggi-board" class="board" width="400" height="450"></canvas>
+        <div class="game-info">Turn: <span id="janggi-turn" style="color:#e94560">Player (Red)</span></div>
+        <canvas id="janggi-board" class="board" width="600" height="675"></canvas>
       </div>
     `;
 
@@ -818,16 +818,17 @@ class JanggiGame extends BaseGame {
 
   draw() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, 400, 450);
-    const w = 400/8, h = 450/9;
+    ctx.clearRect(0, 0, 600, 675);
+    const w = 600/8, h = 675/9;
 
     // Lines
     ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
     for(let i=0; i<10; i++){
-      ctx.beginPath(); ctx.moveTo(0, i*h); ctx.lineTo(400, i*h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i*h); ctx.lineTo(600, i*h); ctx.stroke();
     }
     for(let i=0; i<9; i++){
-      ctx.beginPath(); ctx.moveTo(i*w, 0); ctx.lineTo(i*w, 450); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i*w, 0); ctx.lineTo(i*w, 675); ctx.stroke();
     }
 
     // Palaces
@@ -838,7 +839,7 @@ class JanggiGame extends BaseGame {
     drawPalace(0, 0); drawPalace(0, 7*h);
 
     // Pieces
-    ctx.font = '24px serif';
+    ctx.font = 'bold 36px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for(let y=0; y<10; y++){
@@ -846,7 +847,10 @@ class JanggiGame extends BaseGame {
         const p = this.board[y][x];
         if(p !== ' '){
           ctx.fillStyle = (p === p.toLowerCase()) ? '#e94560' : '#00f2ff';
-          ctx.beginPath(); ctx.arc(x*w, y*h, 18, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(x*w, y*h, 28, 0, Math.PI*2); ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.stroke();
           ctx.fillStyle = '#fff';
           ctx.fillText(this.getPieceName(p), x*w, y*h);
         }
@@ -861,9 +865,9 @@ class JanggiGame extends BaseGame {
 
   handleClick(e) {
     const rect = this.canvas.getBoundingClientRect();
-    const w = 400/8, h = 450/9;
-    const x = Math.round((e.clientX - rect.left) / w);
-    const y = Math.round((e.clientY - rect.top) / h);
+    const w = this.canvas.width / 8, h = this.canvas.height / 9;
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * 8);
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * 9);
 
     const p = this.board[y] ? this.board[y][x] : null;
     if(!this.selected) {
