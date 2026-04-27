@@ -191,26 +191,47 @@ class BallRollerGame extends BaseGame {
   init(container) {
     container.innerHTML = `
       <h2>Ball Roller 3D</h2>
-      <p>Use Arrow Keys to Roll!</p>
+      <div class="game-ui">
+        <div class="score-display">Dist: <span id="roller-score">0</span>m</div>
+      </div>
+      <p>Use ← → keys to move!</p>
       <div id="game-canvas-wrapper"></div>
     `;
     
+    const width = 600, height = 400;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 600 / 400, 0.1, 1000);
+    scene.background = new THREE.Color(0x050505);
+    scene.fog = new THREE.Fog(0x050505, 10, 50);
+
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(600, 400);
+    renderer.setSize(width, height);
     document.getElementById('game-canvas-wrapper').appendChild(renderer.domElement);
 
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(20, 100),
-      new THREE.MeshPhongMaterial({ color: 0x1a1a2e })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
+    // Floor (Infinite-like tiling)
+    const floorGroup = new THREE.Group();
+    scene.add(floorGroup);
+    const createFloorSeg = (z) => {
+      const seg = new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 20),
+        new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 100 })
+      );
+      seg.rotation.x = -Math.PI / 2;
+      seg.position.z = z;
+      floorGroup.add(seg);
+      
+      // Grid helper for floor
+      const grid = new THREE.GridHelper(10, 10, 0x00f2ff, 0x004444);
+      grid.rotation.x = -Math.PI / 2;
+      seg.add(grid);
+      return seg;
+    };
+
+    let floors = [createFloorSeg(0), createFloorSeg(-20), createFloorSeg(-40)];
 
     const ball = new THREE.Mesh(
       new THREE.SphereGeometry(0.5, 32, 32),
-      new THREE.MeshPhongMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 0.5 })
+      new THREE.MeshPhongMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 0.5 })
     );
     ball.position.y = 0.5;
     scene.add(ball);
@@ -220,37 +241,82 @@ class BallRollerGame extends BaseGame {
     scene.add(light);
     scene.add(new THREE.AmbientLight(0x404040));
 
-    camera.position.set(0, 5, 10);
-    camera.lookAt(ball.position);
+    // Obstacles
+    let obstacles = [];
+    const spawnObstacle = (z) => {
+      const obs = new THREE.Mesh(
+        new THREE.BoxGeometry(2, 1, 1),
+        new THREE.MeshPhongMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 0.5 })
+      );
+      obs.position.set((Math.random() - 0.5) * 8, 0.5, z);
+      scene.add(obs);
+      obstacles.push(obs);
+    };
 
+    camera.position.set(0, 3, 5);
+    
     let keys = {};
-    this.addListener(document, 'keydown', e => keys[e.key] = true);
-    this.addListener(document, 'keyup', e => keys[e.key] = false);
+    this.addListener(document, 'keydown', e => keys[e.code] = true);
+    this.addListener(document, 'keyup', e => keys[e.code] = false);
+
+    this.score = 0;
+    let nextObstacleZ = -20;
 
     const animate = () => {
       this.animId = requestAnimationFrame(animate);
       
-      if (keys['ArrowLeft']) ball.position.x -= 0.1;
-      if (keys['ArrowRight']) ball.position.x += 0.1;
-      ball.position.z -= 0.15; // Move forward
+      // Controls
+      if (keys['ArrowLeft']) ball.position.x -= 0.15;
+      if (keys['ArrowRight']) ball.position.x += 0.15;
+      ball.position.z -= 0.2; // Constant speed
+      ball.rotation.x -= 0.2;
 
-      camera.position.z = ball.position.z + 10;
-      camera.lookAt(ball.position);
-      light.position.z = ball.position.z;
+      // Camera follow
+      camera.position.z = ball.position.z + 6;
+      camera.position.x = ball.position.x * 0.5;
+      camera.lookAt(ball.position.x, 0, ball.position.z - 2);
+      light.position.set(ball.position.x, 5, ball.position.z);
 
-      if (Math.abs(ball.position.x) > 10) {
-        cancelAnimationFrame(this.animId);
-        alert('Fell off!');
-        gameManager.startGame('roller');
+      // Floor recycling
+      floors.forEach(f => {
+        if (f.position.z > ball.position.z + 20) {
+          f.position.z -= 60;
+        }
+      });
+
+      // Spawning obstacles
+      if (ball.position.z < nextObstacleZ) {
+        spawnObstacle(ball.position.z - 30);
+        nextObstacleZ -= 15;
       }
 
-      if (Math.floor(ball.position.z) % 10 === 0 && keys['ArrowLeft'] !== undefined) {
-          // Add coin occasionally logic could go here
+      // Collision detection
+      obstacles.forEach(o => {
+        const dist = ball.position.distanceTo(o.position);
+        if (dist < 1) {
+          this.gameOver();
+        }
+      });
+
+      // Out of bounds
+      if (Math.abs(ball.position.x) > 5) {
+        this.gameOver();
       }
+
+      // Score
+      this.score = Math.floor(-ball.position.z);
+      document.getElementById('roller-score').innerText = this.score;
+      if (this.score > 0 && this.score % 100 === 0) gameManager.addCoin(1);
 
       renderer.render(scene, camera);
     };
     animate();
+  }
+
+  gameOver() {
+    cancelAnimationFrame(this.animId);
+    alert(`Game Over! Distance: ${this.score}m`);
+    gameManager.startGame('roller');
   }
 
   destroy() {
