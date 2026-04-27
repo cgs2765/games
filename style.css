@@ -139,8 +139,7 @@ canvas {
 }
 
 #ad {
-  position: fixed;
-  bottom: 0;
+  position: relative;
   width: 100%;
   background: var(--panel-bg);
   padding: 15px;
@@ -148,6 +147,43 @@ canvas {
   border-top: 1px solid rgba(255,255,255,0.1);
   font-size: 0.9rem;
   color: rgba(255,255,255,0.6);
+  margin-top: 40px;
+}
+
+/* Ad Placement Containers */
+.ad-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border: 1px dashed rgba(255,255,255,0.1);
+  margin: 20px auto;
+  overflow: hidden;
+  min-height: 90px;
+}
+
+.ad-top {
+  max-width: 728px;
+  margin-bottom: 20px;
+}
+
+.ad-side {
+  position: fixed;
+  top: 100px;
+  width: 160px;
+  height: 600px;
+  display: none; /* Hidden on mobile */
+}
+
+.ad-left { left: 20px; }
+.ad-right { right: 20px; }
+
+@media (min-width: 1600px) {
+  .ad-side { display: flex; }
+}
+
+@media (max-width: 768px) {
+  .ad-top { width: 100%; min-height: 50px; }
 }
 
 /* Specific UI for games */
