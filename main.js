@@ -542,20 +542,71 @@ class OmokGame extends BaseGame {
     const y = Math.floor((e.clientY - rect.top) / this.cellSize);
 
     if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.board[y][x] === 0) {
-      this.board[y][x] = this.turn;
-      if (this.checkWin(x, y)) {
-        this.draw();
-        alert(`${this.turn === 1 ? 'Black' : 'White'} wins!`);
-        gameManager.addCoin(50);
-        this.gameOver = true;
-      } else {
-        this.turn = this.turn === 1 ? 2 : 1;
-        const turnEl = document.getElementById('omok-turn');
-        turnEl.innerText = this.turn === 1 ? 'Black' : 'White';
-        turnEl.className = this.turn === 1 ? 'turn-black' : 'turn-white';
-        this.draw();
+      this.placeStone(x, y);
+      if (!this.gameOver && this.turn === 2) {
+        setTimeout(() => this.makeAIMove(), 500);
       }
     }
+  }
+
+  placeStone(x, y) {
+    this.board[y][x] = this.turn;
+    this.draw();
+    if (this.checkWin(x, y)) {
+      alert(`${this.turn === 1 ? 'Black' : 'White'} wins!`);
+      if (this.turn === 1) gameManager.addCoin(50);
+      this.gameOver = true;
+    } else {
+      this.turn = this.turn === 1 ? 2 : 1;
+      const turnEl = document.getElementById('omok-turn');
+      turnEl.innerText = this.turn === 1 ? 'Player (Black)' : 'AI (White)';
+      turnEl.className = this.turn === 1 ? 'turn-black' : 'turn-white';
+    }
+  }
+
+  makeAIMove() {
+    if (this.gameOver) return;
+    let bestScore = -1;
+    let move = {x: 7, y: 7};
+
+    for (let y = 0; y < this.size; y++) {
+      for (let x = 0; x < this.size; x++) {
+        if (this.board[y][x] === 0) {
+          let score = this.evaluateMove(x, y);
+          if (score > bestScore) {
+            bestScore = score;
+            move = {x, y};
+          }
+        }
+      }
+    }
+    this.placeStone(move.x, move.y);
+  }
+
+  evaluateMove(x, y) {
+    // Simple heuristic: check lines around the spot
+    let score = 0;
+    const dirs = [[1,0], [0,1], [1,1], [1,-1]];
+    for (let [dx, dy] of dirs) {
+      score += this.checkLine(x, y, dx, dy, 2); // Attack
+      score += this.checkLine(x, y, dx, dy, 1) * 0.9; // Defend
+    }
+    return score;
+  }
+
+  checkLine(x, y, dx, dy, color) {
+    let count = 0;
+    for (let i = 1; i < 5; i++) {
+      let nx = x + dx * i, ny = y + dy * i;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[ny][nx] === color) count++;
+      else break;
+    }
+    for (let i = 1; i < 5; i++) {
+      let nx = x - dx * i, ny = y - dy * i;
+      if (nx >= 0 && nx < this.size && ny >= 0 && ny < this.size && this.board[ny][nx] === color) count++;
+      else break;
+    }
+    return Math.pow(10, count);
   }
 
   checkWin(x, y) {
@@ -650,23 +701,52 @@ class BadukGame extends BaseGame {
     const y = Math.floor((e.clientY - rect.top) / this.cellSize);
 
     if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.board[y][x] === 0) {
-      this.board[y][x] = this.turn;
-      this.capture(x, y);
-      this.turn = this.turn === 1 ? 2 : 1;
-      this.updateUI();
-      this.draw();
-      gameManager.addCoin(2);
+      this.placeStone(x, y);
+      if (this.turn === 2) {
+        setTimeout(() => this.makeAIMove(), 600);
+      }
     }
+  }
+
+  placeStone(x, y) {
+    this.board[y][x] = this.turn;
+    this.capture(x, y);
+    this.turn = this.turn === 1 ? 2 : 1;
+    this.updateUI();
+    this.draw();
+    if (this.turn === 2) gameManager.addCoin(2);
+  }
+
+  makeAIMove() {
+    let attempts = 0;
+    while (attempts < 50) {
+      let x = Math.floor(Math.random() * this.size);
+      let y = Math.floor(Math.random() * this.size);
+      if (this.board[y][x] === 0) {
+        // Simple validity check (has liberty)
+        this.board[y][x] = 2;
+        if (this.hasLiberty(x, y, 2, [], new Set())) {
+          this.placeStone(x, y);
+          return;
+        }
+        this.board[y][x] = 0;
+      }
+      attempts++;
+    }
+    this.pass();
   }
 
   pass() {
     this.turn = this.turn === 1 ? 2 : 1;
     this.updateUI();
+    if (this.turn === 2) {
+       setTimeout(() => this.makeAIMove(), 600);
+    }
   }
 
   updateUI() {
     const turnEl = document.getElementById('baduk-turn');
-    turnEl.innerText = this.turn === 1 ? 'Black' : 'White';
+    turnEl.innerText = this.turn === 1 ? 'Player (Black)' : 'AI (White)';
     turnEl.className = this.turn === 1 ? 'turn-black' : 'turn-white';
   }
 
@@ -791,14 +871,65 @@ class JanggiGame extends BaseGame {
         this.selected = {x, y};
       }
     } else {
-      this.board[y][x] = this.board[this.selected.y][this.selected.x];
-      this.board[this.selected.y][this.selected.x] = ' ';
-      this.selected = null;
-      this.turn = this.turn === 'red' ? 'blue' : 'red';
-      document.getElementById('janggi-turn').innerText = this.turn.toUpperCase();
-      document.getElementById('janggi-turn').style.color = this.turn === 'red' ? '#e94560' : '#00f2ff';
-      this.draw();
-      gameManager.addCoin(5);
+      this.movePiece(this.selected.x, this.selected.y, x, y);
+      if (this.turn === 'blue') {
+        setTimeout(() => this.makeAIMove(), 800);
+      }
+    }
+  }
+
+  movePiece(fx, fy, tx, ty) {
+    this.board[ty][tx] = this.board[fy][fx];
+    this.board[fy][fx] = ' ';
+    this.selected = null;
+    this.turn = this.turn === 'red' ? 'blue' : 'red';
+    const turnEl = document.getElementById('janggi-turn');
+    turnEl.innerText = this.turn === 'red' ? 'Player (Red)' : 'AI (Blue)';
+    turnEl.style.color = this.turn === 'red' ? '#e94560' : '#00f2ff';
+    this.draw();
+    if (this.turn === 'blue') gameManager.addCoin(5);
+  }
+
+  makeAIMove() {
+    let pieces = [];
+    for(let y=0; y<10; y++){
+      for(let x=0; x<9; x++){
+        if(this.board[y][x] !== ' ' && this.board[y][x] === this.board[y][x].toUpperCase()) {
+          pieces.push({x, y, p: this.board[y][x]});
+        }
+      }
+    }
+
+    // Shuffle pieces to randomize
+    pieces.sort(() => Math.random() - 0.5);
+
+    for (let pc of pieces) {
+      // Try a random move around the piece
+      const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+      dirs.sort(() => Math.random() - 0.5);
+      for (let [dx, dy] of dirs) {
+        let tx = pc.x + dx, ty = pc.y + dy;
+        if (tx >= 0 && tx < 9 && ty >= 0 && ty < 10) {
+          let target = this.board[ty][tx];
+          // Prioritize capture
+          if (target !== ' ' && target === target.toLowerCase()) {
+            this.movePiece(pc.x, pc.y, tx, ty);
+            return;
+          }
+        }
+      }
+    }
+
+    // If no capture, just move first valid piece's random dir
+    for (let pc of pieces) {
+       const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+       for (let [dx, dy] of dirs) {
+         let tx = pc.x + dx, ty = pc.y + dy;
+         if (tx >= 0 && tx < 9 && ty >= 0 && ty < 10 && this.board[ty][tx] === ' ') {
+           this.movePiece(pc.x, pc.y, tx, ty);
+           return;
+         }
+       }
     }
   }
 }
