@@ -636,11 +636,12 @@ class BadukGame extends BaseGame {
     this.size = 19;
     this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
     this.turn = 1; // 1: Black, 2: White
-    
+    this.isWaitingForAI = false;
+
     container.innerHTML = `
       <div class="board-game-container">
         <h2>Baduk (바둑)</h2>
-        <div class="game-info">Turn: <span id="baduk-turn" class="turn-black">Black</span></div>
+        <div class="game-info">Turn: <span id="baduk-turn" class="turn-black">Player (Black)</span></div>
         <canvas id="baduk-board" class="board" width="500" height="500"></canvas>
         <button class="btn" onclick="gameManager.currentGame.pass()">Pass</button>
       </div>
@@ -696,13 +697,16 @@ class BadukGame extends BaseGame {
   }
 
   handleClick(e) {
+    if (this.isWaitingForAI || this.turn !== 1) return;
+
     const rect = this.canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / this.cellSize);
-    const y = Math.floor((e.clientY - rect.top) / this.cellSize);
+    const x = Math.floor((e.clientX - rect.left) / (rect.width / this.size));
+    const y = Math.floor((e.clientY - rect.top) / (rect.height / this.size));
 
     if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.board[y][x] === 0) {
       this.placeStone(x, y);
       if (this.turn === 2) {
+        this.isWaitingForAI = true;
         setTimeout(() => this.makeAIMove(), 600);
       }
     }
@@ -723,10 +727,10 @@ class BadukGame extends BaseGame {
       let x = Math.floor(Math.random() * this.size);
       let y = Math.floor(Math.random() * this.size);
       if (this.board[y][x] === 0) {
-        // Simple validity check (has liberty)
         this.board[y][x] = 2;
         if (this.hasLiberty(x, y, 2, [], new Set())) {
           this.placeStone(x, y);
+          this.isWaitingForAI = false;
           return;
         }
         this.board[y][x] = 0;
@@ -734,12 +738,15 @@ class BadukGame extends BaseGame {
       attempts++;
     }
     this.pass();
+    this.isWaitingForAI = false;
   }
 
   pass() {
+    if (this.isWaitingForAI && this.turn === 1) return;
     this.turn = this.turn === 1 ? 2 : 1;
     this.updateUI();
     if (this.turn === 2) {
+       this.isWaitingForAI = true;
        setTimeout(() => this.makeAIMove(), 600);
     }
   }
@@ -801,12 +808,13 @@ class JanggiGame extends BaseGame {
     ];
     this.turn = 'red'; // red (lowercase), blue (uppercase)
     this.selected = null;
+    this.isWaitingForAI = false;
 
     container.innerHTML = `
       <div class="board-game-container">
         <h2>Janggi (장기)</h2>
         <div class="game-info">Turn: <span id="janggi-turn" style="color:#e94560">Player (Red)</span></div>
-        <canvas id="janggi-board" class="board" width="600" height="675"></canvas>
+        <canvas id="janggi-board" class="board" width="800" height="900"></canvas>
       </div>
     `;
 
@@ -818,17 +826,17 @@ class JanggiGame extends BaseGame {
 
   draw() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, 600, 675);
-    const w = 600/8, h = 675/9;
+    ctx.clearRect(0, 0, 800, 900);
+    const w = 800/8, h = 900/9;
 
     // Lines
     ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     for(let i=0; i<10; i++){
-      ctx.beginPath(); ctx.moveTo(0, i*h); ctx.lineTo(600, i*h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i*h); ctx.lineTo(800, i*h); ctx.stroke();
     }
     for(let i=0; i<9; i++){
-      ctx.beginPath(); ctx.moveTo(i*w, 0); ctx.lineTo(i*w, 675); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i*w, 0); ctx.lineTo(i*w, 900); ctx.stroke();
     }
 
     // Palaces
@@ -839,7 +847,7 @@ class JanggiGame extends BaseGame {
     drawPalace(0, 0); drawPalace(0, 7*h);
 
     // Pieces
-    ctx.font = 'bold 36px serif';
+    ctx.font = 'bold 48px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for(let y=0; y<10; y++){
@@ -847,9 +855,9 @@ class JanggiGame extends BaseGame {
         const p = this.board[y][x];
         if(p !== ' '){
           ctx.fillStyle = (p === p.toLowerCase()) ? '#e94560' : '#00f2ff';
-          ctx.beginPath(); ctx.arc(x*w, y*h, 28, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(x*w, y*h, 38, 0, Math.PI*2); ctx.fill();
           ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1;
+          ctx.lineWidth = 2;
           ctx.stroke();
           ctx.fillStyle = '#fff';
           ctx.fillText(this.getPieceName(p), x*w, y*h);
@@ -864,8 +872,9 @@ class JanggiGame extends BaseGame {
   }
 
   handleClick(e) {
+    if (this.isWaitingForAI) return;
+
     const rect = this.canvas.getBoundingClientRect();
-    const w = this.canvas.width / 8, h = this.canvas.height / 9;
     const x = Math.round(((e.clientX - rect.left) / rect.width) * 8);
     const y = Math.round(((e.clientY - rect.top) / rect.height) * 9);
 
@@ -877,6 +886,7 @@ class JanggiGame extends BaseGame {
     } else {
       this.movePiece(this.selected.x, this.selected.y, x, y);
       if (this.turn === 'blue') {
+        this.isWaitingForAI = true;
         setTimeout(() => this.makeAIMove(), 800);
       }
     }
@@ -904,37 +914,36 @@ class JanggiGame extends BaseGame {
       }
     }
 
-    // Shuffle pieces to randomize
     pieces.sort(() => Math.random() - 0.5);
 
     for (let pc of pieces) {
-      // Try a random move around the piece
       const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
       dirs.sort(() => Math.random() - 0.5);
       for (let [dx, dy] of dirs) {
         let tx = pc.x + dx, ty = pc.y + dy;
         if (tx >= 0 && tx < 9 && ty >= 0 && ty < 10) {
           let target = this.board[ty][tx];
-          // Prioritize capture
           if (target !== ' ' && target === target.toLowerCase()) {
             this.movePiece(pc.x, pc.y, tx, ty);
+            this.isWaitingForAI = false;
             return;
           }
         }
       }
     }
 
-    // If no capture, just move first valid piece's random dir
     for (let pc of pieces) {
        const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
        for (let [dx, dy] of dirs) {
          let tx = pc.x + dx, ty = pc.y + dy;
          if (tx >= 0 && tx < 9 && ty >= 0 && ty < 10 && this.board[ty][tx] === ' ') {
            this.movePiece(pc.x, pc.y, tx, ty);
+           this.isWaitingForAI = false;
            return;
          }
        }
     }
+    this.isWaitingForAI = false;
   }
 }
 
