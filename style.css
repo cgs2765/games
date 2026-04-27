@@ -207,8 +207,11 @@ canvas {
 }
 
 #janggi-board {
-  width: 800px;
-  height: 900px;
+  width: 480px; /* Reduced display size to "zoom out" */
+  max-width: 95vw;
+  max-height: 75vh;
+  height: auto;
+  aspect-ratio: 8 / 9;
 }
 
 .game-info {
