@@ -1,14 +1,27 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Games Pro+</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+
+  <h1>🎮 Mini Games Pro+</h1>
+  <div id="coin">💰 0</div>
+
+  <div id="menu">
+    <div class="card" onclick="startClicker()">Clicker</div>
+    <div class="card" onclick="startSnake()">Snake</div>
+    <div class="card" onclick="startFlappy()">Flappy</div>
+    <div class="card" onclick="reactionGame()">Reaction</div>
+    <div class="card" onclick="memoryGame()">Memory</div>
+  </div>
+
+  <div id="game"></div>
+  <div id="ad">광고 영역 (애드센스)</div>
+
+  <script src="main.js"></script>
 </body>
 </html>
